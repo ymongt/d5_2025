@@ -62,9 +62,13 @@ class Uad():
 # -------------------------------
 # Testcase 1: Enable/Disable
 # -------------------------------
-def run_tc1_sequence(uad, test_signal=0x55):
+# -------------------------------
+# Testcase 1: Enable/Disable (fixed)
+# -------------------------------
+def run_tc1_sequence(uad, test_signal=0x55, enable_bit=4):
     """
     Run enable/disable sequence on the given UAD instance.
+    enable_bit: CSR bit position for global enable (default=4)
     Returns a dict with results for comparison.
     """
     results = {}
@@ -76,9 +80,9 @@ def run_tc1_sequence(uad, test_signal=0x55):
 
     csr = uad.read_CSR()
     if csr is not None:
-        print(f"CSR after enable: 0x{csr:08X}")
-        results['enabled_fen'] = (csr >> 0) & 1
-        print("Filter enabled:", results['enabled_fen'])
+        print(f"Raw CSR after enable: 0x{csr:08X}")
+        results['enabled_fen'] = (csr >> enable_bit) & 1
+        print(f"Filter enabled (bit {enable_bit}):", results['enabled_fen'])
     else:
         print("error: interface unavailable after enable")
         results['enabled_fen'] = None
@@ -88,12 +92,11 @@ def run_tc1_sequence(uad, test_signal=0x55):
     uad.disable()
     csr = uad.read_CSR()
     if csr is not None:
-        print(f"CSR after disable: 0x{csr:08X}")
-        results['disabled_fen'] = (csr >> 0) & 1
-        print("Filter enabled:", results['disabled_fen'])
+        print(f"Raw CSR after disable: 0x{csr:08X}")
+        results['disabled_fen'] = (csr >> enable_bit) & 1
+        print(f"Filter enabled (bit {enable_bit}):", results['disabled_fen'])
     else:
-        print("error: interface unavailable, sut is disabled")
-        print("error: interface unavailable, cannot read CSR")
+        print("error: interface unavailable after disable")
         print("CSR after disable: Interface unavailable")
         print("Filter enabled: Interface unavailable")
         results['disabled_fen'] = None
@@ -146,3 +149,8 @@ for impl in instances:
     uad.inst = impl
     impl_results = run_tc1_sequence(uad)
     compare_tc1(golden_results, impl_results, impl_name=impl)
+
+
+
+
+
